@@ -1,0 +1,28 @@
+# Use Node.js 20 Alpine as base image
+FROM node:20-alpine
+
+# Install dependencies
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install dependencies
+RUN npm ci
+
+# Install Prisma CLI globally
+RUN npm install -g prisma
+
+# Copy Prisma schema
+COPY prisma ./prisma
+
+# Copy any additional files needed for migrations
+COPY . .
+
+# Set environment variables
+ENV NODE_ENV=production
+
+# Run Prisma migrations
+CMD ["npm", "run", "migrate"] 

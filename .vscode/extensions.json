@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "teticio.python-envy",
+    "charliermarsh.ruff",
+    "Prisma.prisma",
+    "ms-python.python",
+    "bradlc.vscode-tailwindcss",
+    "streetsidesoftware.code-spell-checker"
+  ]
+}

@@ -1,0 +1,291 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SALES_REP
+  ACCOUNT_MANAGER
+  TRADE_MARKETING
+  FINANCE
+  COLLECTIONS
+  LOGISTICS
+}
+
+enum OrderStatus {
+  DRAFT
+  PENDING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  INVOICED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  CANCELLED
+}
+
+enum PromotionType {
+  PERCENTAGE    
+  FIXED_AMOUNT  
+}
+
+enum PromotionStatus {
+  DRAFT         
+  ACTIVE        
+  COMPLETED     
+}
+
+enum EmailStatus {
+  DRAFT
+  SENT
+}
+
+
+enum AccountInsightType {
+  PAYMENT_OVERDUE
+  INVENTORY_LOW
+  ORDER_PREDICTION 
+  OTHER
+}
+
+enum Priority {
+  URGENT
+  HIGH
+  MEDIUM
+}
+
+enum ActionItemType {
+  CALL
+  VISIT
+  FOLLOW_UP
+}
+
+
+model User {
+  id Int @id @default(autoincrement())
+  first_name String
+  last_name String
+  email String @unique
+  role Role
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  accounts Account[]
+  orders Order[]
+  territory_id Int?
+  territory Territory? @relation(fields: [territory_id], references: [id])
+  chat_sessions ChatSession[]
+  action_items     ActionItem[]
+}
+
+model Territory {
+  id Int @id @default(autoincrement())
+  name String
+  description String?
+  users User[]
+  accounts Account[]
+}
+
+
+model Contact {
+  id       Int       @id @default(autoincrement())
+  name     String
+  email    String
+  phone    String?
+  company  String?
+  accounts Account[]
+}
+
+model Address {
+  id       Int       @id @default(autoincrement())
+  street   String
+  city     String
+  state    String
+  zip_code String
+  country  String
+  accounts Account[]
+}
+
+model Account {
+  id               Int              @id @default(autoincrement())
+  name             String
+  description      String?
+  industry         String?
+  credit_limit     Float?
+  notes            String?
+  created_at       DateTime         @default(now())
+  sales_rep_id     Int
+  contact_id       Int
+  address_id       Int
+  territory_id     Int
+  sales_rep        User         @relation(fields: [sales_rep_id], references: [id])
+  contact          Contact          @relation(fields: [contact_id], references: [id])
+  address          Address          @relation(fields: [address_id], references: [id])
+  ordering_pattern OrderingPattern?
+  orders           Order[]
+  territory        Territory        @relation(fields: [territory_id], references: [id])
+  insights         AccountInsight[]
+  action_items     ActionItem[]
+}
+
+model OrderingPattern {
+  id                   Int     @id @default(autoincrement())
+  frequency            String
+  average_order_value  Float
+  preferred_order_day  String?
+  seasonality          String?
+  account_id           Int     @unique
+  account              Account @relation(fields: [account_id], references: [id])
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String
+  description   String?
+  subcategories Subcategory[]
+  products      Product[]
+}
+
+model Subcategory {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  category_id Int
+  category    Category  @relation(fields: [category_id], references: [id])
+  products    Product[]
+}
+
+model Product {
+  id             Int         @id @default(autoincrement())
+  sku            String      @unique
+  name           String
+  description    String?
+  size           String?
+  unit           String?
+  price          Float
+  currency       String      @default("USD")
+  cost           Float?
+  category_id    Int
+  subcategory_id Int
+  category       Category    @relation(fields: [category_id], references: [id])
+  subcategory    Subcategory @relation(fields: [subcategory_id], references: [id])
+  order_items    OrderItem[]
+  promotions     Promotion[]
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  account_id      Int
+  sales_rep_id    Int
+  payment_status  PaymentStatus? @default(UNPAID)
+  status          OrderStatus? @default(DRAFT)
+  notes           String?
+  collection_date DateTime?
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+  account         Account     @relation(fields: [account_id], references: [id])
+  sales_rep       User    @relation(fields: [sales_rep_id], references: [id])
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id         Int     @id @default(autoincrement())
+  order_id   Int
+  product_id Int
+  quantity   Int
+  price      Float
+  discount   Float? @default(0)
+  total      Float
+  promotion_id Int?
+  order      Order   @relation(fields: [order_id], references: [id])
+  product    Product @relation(fields: [product_id], references: [id])
+  promotion      Promotion? @relation(fields: [promotion_id], references: [id]) 
+}
+
+model ChatSession {
+  id Int @id @default(autoincrement())
+  title String?
+  user_id Int
+  user User @relation(fields: [user_id], references: [id])
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  messages ChatMessage[]
+}
+
+model ChatMessage {
+  id Int @id @default(autoincrement())
+  content String
+  role String
+  session_id Int
+  metadata String?
+  context String?
+  session ChatSession @relation(fields: [session_id], references: [id])
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Promotion {
+  id                Int              @id @default(autoincrement())
+  name              String
+  description       String?
+  type              PromotionType
+  status            PromotionStatus  @default(DRAFT)
+  discount          Float            // 20 (for 20%) or 5 (for $5)
+  min_quantity      Int?             // For quantity requirements
+  base_volume       Int?    
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  product_id        Int
+  product           Product @relation(fields: [product_id], references: [id])
+  order_items       OrderItem[]
+}
+
+model Email {
+  id Int @id @default(autoincrement())
+  subject String?
+  body String?
+  status EmailStatus @default(DRAFT)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+
+model AccountInsight {
+  id           Int     @id @default(autoincrement())
+  account_id   Int
+  type         AccountInsightType
+  priority     Priority
+  title        String
+  description  String
+  confidence   Float
+  value        Float?  // Dollar value of opportunity
+  created_at   DateTime @default(now())
+  account      Account @relation(fields: [account_id], references: [id])
+}
+
+model ActionItem {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  account_id  Int?
+  type        ActionItemType
+  priority    Priority
+  title       String
+  due_time    DateTime?
+  completed   Boolean  @default(false)
+  user        User     @relation(fields: [user_id], references: [id])
+  account     Account? @relation(fields: [account_id], references: [id])
+}

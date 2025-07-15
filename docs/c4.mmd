@@ -1,0 +1,160 @@
+%% C4Context
+    %%   title System Context diagram for Internet Banking System
+      
+    %%   Enterprise_Boundary(b0, "BankBoundary0") {
+    %%     Person(customerA, "Banking Customer A", "A customer of the bank, with personal bank accounts.")
+    %%     Person(customerB, "Banking Customer B")
+    %%     Person_Ext(customerC, "Banking Customer C", "desc")
+
+    %%     Person(customerD, "Banking Customer D", "A customer of the bank, <br/> with personal bank accounts.")
+
+    %%     System(SystemAA, "Internet Banking System", "Allows customers to view information about their bank accounts, and make payments.")
+
+    %%     Enterprise_Boundary(b1, "BankBoundary") {
+
+    %%       SystemDb_Ext(SystemE, "Mainframe Banking System", "Stores all of the core banking information about customers, accounts, transactions, etc.")
+
+    %%       System_Boundary(b2, "BankBoundary2") {
+    %%         System(SystemA, "Banking System A")
+    %%         System(SystemB, "Banking System B", "A system of the bank, with personal bank accounts. next line.")
+    %%       }
+
+    %%       System_Ext(SystemC, "E-mail system", "The internal Microsoft Exchange e-mail system.")
+    %%       SystemDb(SystemD, "Banking System D Database", "A system of the bank, with personal bank accounts.")
+
+    %%       Boundary(b3, "BankBoundary3", "boundary") {
+    %%         SystemQueue(SystemF, "Banking System F Queue", "A system of the bank.")
+    %%         SystemQueue_Ext(SystemG, "Banking System G Queue", "A system of the bank, with personal bank accounts.")
+    %%       }
+    %%     }
+    %%   }
+
+    %%   BiRel(customerA, SystemAA, "Uses")
+    %%   BiRel(SystemAA, SystemE, "Uses")
+    %%   Rel(SystemAA, SystemC, "Sends e-mails", "SMTP")
+    %%   Rel(SystemC, customerA, "Sends e-mails to")
+
+    %%   UpdateElementStyle(customerA, $fontColor="red", $bgColor="grey", $borderColor="red")
+    %%   UpdateRelStyle(customerA, SystemAA, $textColor="blue", $lineColor="blue", $offsetX="5")
+    %%   UpdateRelStyle(SystemAA, SystemE, $textColor="blue", $lineColor="blue", $offsetY="-10")
+    %%   UpdateRelStyle(SystemAA, SystemC, $textColor="blue", $lineColor="blue", $offsetY="-40", $offsetX="-50")
+    %%   UpdateRelStyle(SystemC, customerA, $textColor="red", $lineColor="red", $offsetX="-50", $offsetY="20")
+
+%% 
+
+C4Context
+    title 🤖 ChaQi System Architecture
+    Person(user, "Sales Rep", "Chat interactions")
+    System_Ext(anthropic, "🧠 Anthropic", "LLM Model")
+    System_Boundary(system, "ChaQi") {
+        Container(ui, "⚛️ UI", "React/TS", "Chat interface")
+        Container(api, "🚀 API", "NestJS", "Orchestration")
+      
+        Boundary(mcp, "MCP Ecosystem", "") {
+            Container(mcpRoot, "🌟 Root MCP", "Orchestrator")
+            Boundary(mcpServers, "", "") {
+                Container(mcpCatalog, "📦 Catalog MCP", "MCP")
+                Container(mcpCrm, "👥 CRM MCP", "MCP") 
+                Container(mcpErp, "📊 ERP MCP", "MCP")
+                Container(mcpNotification, "🔔 Notifications MCP", "MCP")
+            }
+        }
+        Boundary(platforms, "Platforms", "") {
+            ContainerDb(database, "Main DB", "SQL Database", "")
+        }
+    }
+    
+    Rel(user, ui, "Ask question", "HTTPS")
+    BiRel(ui, api, "Stream conversation", "HTTPS")
+    BiRel(api, anthropic, "Stream conversation", "HTTPS")
+    BiRel(api, mcpRoot, "Trigger tools", "MCP")
+    BiRel(mcpRoot, mcpCatalog, "🔗", "MCP")
+    BiRel(mcpRoot, mcpCrm, "🔗", "MCP")
+    BiRel(mcpRoot, mcpErp, "🔗", "MCP")
+    BiRel(mcpRoot, mcpNotification, "🔗", "MCP")
+    BiRel(mcpCatalog, database, "Query", "")
+    BiRel(mcpCrm, database, "Query", "")
+    BiRel(mcpErp, database, "Query", "")
+    BiRel(mcpNotification, database, "Query", "")
+
+
+
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")
+
+ 
+%%     %% System_Boundary(system, "ChaQi") {
+%%     %%     Container(ui, "⚛️ React UI", "React/TS", "Chat interface")
+%%     %%     Container(api, "🚀 NestJS API", "NestJS", "Orchestration")
+%%     %%     %% ContainerDb(database, "Database", "SQL Database", "")
+%%     %%     Boundary(mcpServers, "MCP Servers", "") {
+%%     %%         Container(mcpCatalog, "📦 Catalog", "MCP")
+%%     %%         Container(mcpCrm, "👥 CRM", "MCP") 
+%%     %%         Container(mcpErp, "📊 ERP", "MCP")
+%%     %%         Container(mcpNotification, "🔔 Notifications", "MCP")
+%%     %%     }
+%%     %%     Boundary(mcpServdfers, "MCP Servers", "") {
+%%     %%         ContainerDb(databadse, "Datddabase", "SQL Datadbase", "")
+%%     %%     }
+%%     %%     Boundary(mcpServdfdders, "MCP Servers", "") {
+%%     %%         ContainerDb(databadse, "Datddabase", "SQL Datadbase", "")
+%%     %%     }
+%%     %%     Boundary(mcpServdferaas, "MCP rs", "") {
+%%     %%         ContainerDb(databadse, "Datddabase", "SQL Datadbase", "")
+%%     %%     }
+%%     %% }
+
+    
+%%     %% System_Boundary(system, "🏢 AI Agent Platform") {
+%%     %%     Container(ui, "⚛️ React UI", "React/TS", "Chat interface")
+%%     %%     Container(api, "🚀 NestJS API", "NestJS", "Orchestration")
+%%     %%     Container(mcpRoot, "🌟 Root MCP", "Hub", "Orchestrator")
+
+%%     %%     Deployment_Node(database, "bigbank-db02", "Ubuntu 16.04 LTS") {
+%%     %%         ContainerDb(database, "Database", "Relational Database Schema", "Stores user registration information, hashed authentication credentials, access logs, etc.")
+%%     %%                 Container_Boundary(mcpServers, "Connected Servers") {
+%%     %%         Container(mcpCatalog, "📦 Catalog", "MCP")
+%%     %%         Container(mcpCrm, "👥 CRM", "MCP") 
+%%     %%         Container(mcpErp, "📊 ERP", "MCP")
+%%     %%         Container(mcpNotification, "🔔 Notifications", "MCP")
+%%     %%     }
+%%     %%     }   
+%%     %%     Deployment_Node(mcpRoot, "bigbank-mcp01", "Ubuntu 16.04 LTS") {
+%%     %%         Container(mcpRoot, "🌟 Root MCP", "Hub", "Orchestrator")
+%%     %%     }
+%%     %% }
+    
+    
+%%     %% System_Ext(anthropic, "🧠 Anthropic", "LLM Model")
+
+
+%%     %% %% %% Main user flow
+%%     %% Rel(user, ui, "💬 Chat", "HTTPS")
+%%     %% Rel(ui, api, "Sends message", "SSE")
+
+    
+%%     %% %% AI orchestration flow
+%%     %% Rel(api, mcpRoot, "🛠️ Tools", "MCP")
+%%     %% Rel(api, anthropic, "🎯 Requests", "HTTPS")
+%%     %% Rel(anthropic, api, "⚡ Responses", "Stream")
+%%     %% Rel(api, mcpRoot, "🔄 Execute", "MCP")
+%%     %% BiRel(api, database, "", "MCP")
+    
+%%     %% %% MCP server mounting
+%%     %% Rel(mcpRoot, mcpCatalog, "🔗", "MCP")
+%%     %% Rel(mcpRoot, mcpCrm, "🔗", "MCP")
+%%     %% Rel(mcpRoot, mcpErp, "🔗", "MCP")
+%%     %% Rel(mcpRoot, mcpNotification, "🔗", "MCP")
+%%     %% BiRel(mcpCatalog, database, "", "MCP")
+%%     %% BiRel(mcpCrm, database, "", "MCP")
+%%     %% BiRel(mcpErp, database, "", "MCP")
+%%     %% BiRel(mcpNotification, database, "", "MCP")
+
+%%     %% %% UpdateElementStyle(user, $bgColor="#667EEA", $fontColor="#FFFFFF", $borderColor="#5A67D8")
+%%     %% %% UpdateElementStyle(ui, $bgColor="#4FD1C7", $fontColor="#FFFFFF", $borderColor="#38B2AC")
+%%     %% %% UpdateElementStyle(api, $bgColor="#9F7AEA", $fontColor="#FFFFFF", $borderColor="#805AD5")
+%%     %% %% UpdateElementStyle(anthropic, $bgColor="#F6AD55", $fontColor="#FFFFFF", $borderColor="#ED8936")
+%%     %% %% UpdateElementStyle(mcpRoot, $bgColor="#68D391", $fontColor="#FFFFFF", $borderColor="#48BB78")
+%%     %% %% UpdateElementStyle(mcpCatalog, $bgColor="#81E6D9", $fontColor="#2D3748", $borderColor="#4FD1C7")
+%%     %% %% UpdateElementStyle(mcpCrm, $bgColor="#90CDF4", $fontColor="#2D3748", $borderColor="#63B3ED")
+%%     %% %% UpdateElementStyle(mcpErp, $bgColor="#A78BFA", $fontColor="#FFFFFF", $borderColor="#8B5CF6")
+%%     %% %% UpdateElementStyle(mcpNotification, $bgColor="#FBB6CE", $fontColor="#2D3748", $borderColor="#F687B3")
